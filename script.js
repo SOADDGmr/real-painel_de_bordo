@@ -53,7 +53,7 @@ $(document).ready(function(){
       t.on('draw.dt',function(){
           o1.empty();
           o2.empty();
-          var nl=100
+          var nl=50
           var fh=false;
           var as={};
           t.rows({search:'applied'}).every(function(){
