@@ -11,7 +11,7 @@ $(document).ready(function() {
             'border': '1px solid #ccc',
             'color': 'white',
             'text-align': 'center',
-            'font-size': '0.5vw'
+            'font-size': '1.3vw'
         });
         // Insere a área 1 abaixo da navbar
         $('nav.navbar').after(outputArea1);
