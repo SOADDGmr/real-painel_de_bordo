@@ -1,13 +1,3 @@
-// ==UserScript==
-// @name         Painel de Bordo ++
-// @namespace    marco.guedes.e259671
-// @version      0.1 // Versão inicial do seu script
-// @description  Implementa funções ao painel de Bordo Cemig
-// @author       Marco Guedes
-// @require      https://raw.githubusercontent.com/SOADDGmr/real-painel_de_bordo/refs/heads/main/script.js
-// @match        *https://geo.cemig.com.br/painel_de_bordo/Geo/Clientes*
-// ==/UserScript==
-
 // Criando uma div para mostrar os serviços e uma para mostrar os informativos
 $(document).ready(function() {
     // Referência para a primeira área de saída
@@ -21,7 +11,7 @@ $(document).ready(function() {
             'border': '1px solid #ccc',
             'color': 'white',
             'text-align': 'center',
-            'font-size': '1.3vw'
+            'font-size': '0.5vw'
         });
         // Insere a área 1 abaixo da navbar
         $('nav.navbar').after(outputArea1);
