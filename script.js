@@ -1,456 +1,645 @@
-// Criando uma div para mostrar os serviços e uma para mostrar os informativos
+// ==UserScript==
+// @name		Painel de Bordo ++
+// @namespace		marco.guedes.e259671
+// @version		1.0.0
+// @description 	Implementa funções ao painel de Bordo Cemig
+// @author		Marco Guedes
+// @match		*https://geo.cemig.com.br/painel_de_bordo/Geo/Clientes*
+// ==/UserScript==
+
+// TIMER PARA RECARREGAR A PÁGINA
+setInterval(function() { location.reload(); }, 120000); // 2 Minutos
+
 $(document).ready(function() {
-    // Referência para a primeira área de saída
-    var outputArea1 = $('#data-output-area-1');
-    // Verifica se area 1 ja existe, se não ele cria
-    if (!outputArea1.length) {
-        outputArea1 = $('<div>').attr('id', 'data-output-area-1').css({
-			// Estilo da área
-            'margin-bottom': '10px',
-            'padding': '10px',
-            'border': '1px solid #ccc',
-            'color': 'white',
-            'text-align': 'center',
-            'font-size': '1.3vw'
-        });
-        // Insere a área 1 abaixo da navbar
-        $('nav.navbar').after(outputArea1);
+
+    // OCULTA A DIV QUE CONTEM OS CHECKBOX
+    var elementToHide = $('body > div:nth-child(5) > div.col-md-6.text-center');
+    if (elementToHide.length) { elementToHide.css('display', 'none'); }
+
+    // CRIAÇÃO DAS ÁREAS:
+    var outputArea1, outputArea2, outputArea3;
+
+		// ÁREA 1 (Serviços com 100 clientes ou mais)
+		outputArea1 = $('#output-area-1');
+		if (!outputArea1.length) {
+			outputArea1 = $('<div>').attr('id', 'output-area-1').css({
+				'padding': '12px 15px 1px 15px',
+				'color': 'white',
+				'text-align': 'center',
+				'font-size': '1.3vw',
+				'background-color': 'lime',
+			});
+			$('nav.navbar').after(outputArea1); // Insere após o navbar
+		}
+
+		// ÁREA 2 (Serviços com mais de 50 clientes e menos de 100)
+		outputArea2 = $('#output-area-2');
+		if (!outputArea2.length) {
+			outputArea2 = $('<div>').attr('id', 'output-area-2').css({
+				'padding': '12px 15px 1px 15px',
+				'color': 'white',
+				'text-align': 'center',
+				'font-size': '1.3vw',
+				'background-color': 'lime',
+			});
+			outputArea1.after(outputArea2); // Insere após a area 1
+        }
+
+		// ÁREA 3 (Informativos)
+		outputArea3 = $('#output-area-3');
+		if (!outputArea3.length) {
+			outputArea3 = $('<div>').attr('id', 'output-area-3').css({
+				'margin-top': '-9px',
+				'padding': '10px',
+				'border': '1px solid #ccc',
+				'background-color': '#f9f9f9'
+			});
+			$('.dataTables_wrapper').after(outputArea3); // Insere depois da tabela
+        }
+
+	// MOVIMENTAÇÃO DE ELEMENTOS:
+		// Movimentação 1: Input filtro para o lugar do Logo TI
+		var filterDiv = $('#tabela-de-dados-clientes_filter');
+		var targetDivLogo = $('#dvColTiLogo');
+		var logoImg = $('#imgLogoTI');
+
+		if (filterDiv.length && targetDivLogo.length) {
+			// Move a div do filtro para dentro da div alvo do logo
+			targetDivLogo.append(filterDiv);
+		}
+
+		if (logoImg.length) {
+			// Remove a imagem do logo
+			logoImg.remove();
+		}
+
+		// Movimentação 2: Botão Excel para o lugar da Logo Cemig
+		var dtButtonsDiv = $('div.dt-buttons');
+		var targetDivButtons = $('div.col-xs-4.text-left');
+		var elementToRemoveInTargetButtons = targetDivButtons.find('a[href="javascript:void(0)"]');
+
+		if (dtButtonsDiv.length && targetDivButtons.length) {
+			if (elementToRemoveInTargetButtons.length) {
+				elementToRemoveInTargetButtons.remove();
+			}
+			targetDivButtons.append(dtButtonsDiv);
+		}
+
+		// Movimentação 3: Div de Proxima Atualização para junto do Título
+		var sourceDivToMove = $('div.col-md-3.text-right[style="padding-top: 3px;"]');
+		var targetDivCenter = $('div.col-xs-4.text-center');
+		var titleLink = $('#aTitle');
+
+		if (sourceDivToMove.length && targetDivCenter.length) {
+			var elementToRemoveInTargetCenter = targetDivCenter.find('a[href="javascript:void(0)"]');
+			 if (elementToRemoveInTargetCenter.length) {
+				elementToRemoveInTargetCenter.remove();
+			}
+			if (titleLink.length) {
+				 targetDivCenter.prepend(titleLink);
+			}
+			targetDivCenter.append(sourceDivToMove);
+
+		}
+    // REMOVER O PESQUISAR E COLOCAR DENTRO DO INPUT
+    var filterLabel = $('#tabela-de-dados-clientes_filter > label');
+    if (filterLabel.length) {
+        var filterInput = filterLabel.find('input[type="search"]');
+        if (filterInput.length) {
+            // Remove todo o conteúdo da label, mas mantém o input
+            filterLabel.contents().each(function() {
+                if (this.nodeType === 3) { // Node.TEXT_NODE
+                    $(this).remove();
+                }
+            });
+		}
     }
 
-    // Referência para a segunda área de saída
-    var outputArea2 = $('#data-output-area-2');
-    // Se a área 2 não existe, cria e estiliza
-    if (!outputArea2.length) {
-        outputArea2 = $('<div>').attr('id', 'data-output-area-2').css({
-            'margin-top': '20px',
-            'padding': '10px',
-            'border': '1px solid #ccc',
-            'background-color': '#f9f9f9'
-        });
-        // Insere a área 2 após a tabela de dados dos clientes
-        $('#tabela-de-dados-clientes').after(outputArea2);
-    }
-
-    // As variáveis outputArea1 e outputArea2 agora referenciam as divs,
-    // estejam elas recém-criadas ou já existentes no HTML.
-    // Elas serão usadas por outros scripts.
-});
-
-// Script 2: Inicializa o DataTables na tabela e oculta colunas específicas.
-$(document).ready(function() {
-    // Verifica se a biblioteca DataTables está disponível e se a tabela existe
-    if ($.fn.DataTable && $('#tabela-de-dados-clientes').length) {
-        // Inicializa o DataTables na tabela
-        var table = $('#tabela-de-dados-clientes').DataTable();
-
-        // Verifica se a inicialização foi bem sucedida
+    // OCULTANDO COLUNAS INICIAIS INDESEJADAS:
+    var table;
+    if ($.fn.DataTable && $('#tabela-de-dados-clientes').length) { // Verifica se a Tabela já foi carregada
+        table = $('#tabela-de-dados-clientes').DataTable(); // Define table como o objeto Tabela
         if (table) {
-            // Define os índices das colunas a serem ocultadas (baseado em 0)
-            var columnsToHide = [5, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23, 24];
-
-            // Oculta as colunas especificadas
+            var columnsToHide = [5, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23, 24]; // Colunas a serem ocultas (contagem começa do 0)
             if (columnsToHide.length) {
                 try {
-                    table.columns(columnsToHide).visible(false);
+                    table.columns(columnsToHide).visible(false); // Oculta as colunas
                 } catch (e) {
-                    console.error("Erro ao ocultar colunas do DataTables:", e);
+                    console.error("Erro ao ocultar colunas:", e);
                 }
             }
-
-            // A instância do DataTables (variável 'table') é crucial e será usada por outros scripts.
-            // Certifique-se de que este script é carregado antes dos que dependem dela.
         }
     }
-});
 
-// Script 3: Injeta estilos CSS dinamicamente na seção <head> da página.
-$(document).ready(function() {
-    // Cria um novo elemento <style>
-    var styleElement = document.createElement('style');
+	// REMOVENDO STYLE INLINE:
+	const selector1 = 'body > nav > div > div.col-xs-4.text-left';
+	$(selector1).removeAttr('style'); // Remove completamente o atributo style
+	$(selector1).attr('id', 'NavExcelBtn'); // Adiciona um atributo id com o valor "NavExcelBtn"
 
-    // Define o conteúdo CSS do elemento style
+	const selector2 = 'body > nav > div > div.col-xs-4.text-center';
+	$(selector2).removeAttr('style'); // Remove completamente o atributo style
+	$(selector2).attr('id', 'NavTitle'); // Adiciona um atributo id com o valor "NavTitle"
+
+	const selector3 = 'body > nav > div > div.col-xs-4.text-right';
+	$(selector3).removeAttr('style'); // Remove completamente o atributo style
+	$(selector3).attr('id', 'NavFilter'); // Adiciona um atributo id com o valor "NavFilter"
+
+	const selector4 = '#NavExcelBtn > div > button';
+	$(selector4).attr('class', 'excel_button'); // Reatribui os valores de class
+
+	const selector5 = '#NavTitle > div';
+	$(selector5).removeAttr('style'); // Remove completamente o atributo style
+	$(selector5).attr('id', 'NavAlerts'); // Adiciona um atributo id com o valor "NavAlerts"
+
+	const selector6 = 'body > nav > div';
+	$(selector6).attr('id', 'NavRow'); // Adiciona um atributo id com o valor "NavRow"
+
+	const selector7 = '#NavAlerts > div:nth-child(2)';
+	$(selector7).attr('id', 'dvAtualizacao'); // Adiciona um atributo id com o valor "dvAtualizacao"
+    $(selector7).css('margin-right', '');
+
+	const selector8 = '#dvStatus';
+    $(selector8).css('margin-right', '');
+
+	const selector9 = '#tabela-de-dados-clientes_filter > label';
+	$(selector9).attr('id', 'Filter'); // Adiciona um atributo id com o valor "Filter"
+
+	const selector10 = '#tabela-de-dados-clientes_filter > label > input[type=search]';
+	$(selector10).attr('id', 'Filter'); // Adiciona um atributo id com o valor "Filter"
+
+	const selector11 = '#tabela-de-dados-clientes > thead > tr:nth-child(1)';
+	$(selector11).remove();
+
+	const selector12 = '#tabela-de-dados-clientes > tfoot > tr';
+    $(selector12).css('background-color', '#424175');
+
+    // --- INÍCIO: MOVIMENTAÇÃO DE ELEMENTOS EXISTENTES ---
+    // Movimentação 1: div#tabela-de-dados-clientes_filter para dentro de div#dvColTiLogo e remover img#imgLogoTI
+    var filterDiv = $('#tabela-de-dados-clientes_filter');
+    var targetDivLogo = $('#dvColTiLogo');
+    var logoImg = $('#imgLogoTI');
+
+    console.log("Custom JS: Checking for #tabela-de-dados-clientes_filter (found: " + filterDiv.length + ")");
+    console.log("Custom JS: Checking for #dvColTiLogo (found: " + targetDivLogo.length + ")");
+    console.log("Custom JS: Checking for #imgLogoTI (found: " + logoImg.length + ")");
+
+    if (filterDiv.length && targetDivLogo.length) {
+        // Move a div do filtro para dentro da div alvo do logo
+        targetDivLogo.append(filterDiv);
+        console.log("Custom JS: Moved #tabela-de-dados-clientes_filter into #dvColTiLogo");
+    } else {
+        if (!filterDiv.length) console.warn("Custom JS: #tabela-de-dados-clientes_filter not found for moving.");
+        if (!targetDivLogo.length) console.warn("Custom JS: #dvColTiLogo not found for moving.");
+    }
+
+    if (logoImg.length) {
+        // Remove a imagem do logo
+        logoImg.remove();
+        console.log("Custom JS: Removed #imgLogoTI");
+    } else {
+        console.warn("Custom JS: #imgLogoTI not found for removal.");
+    }
+
+    // Movimentação 2: div.dt-buttons para dentro de div.col-xs-4.text-left e remover <a> com href="javascript:void(0)"
+    var dtButtonsDiv = $('div.dt-buttons');
+    var targetDivButtons = $('div.col-xs-4.text-left');
+    // Elemento a ser removido dentro da div de destino (div.col-xs-4.text-left)
+    var elementToRemoveInTargetButtons = targetDivButtons.find('a[href="javascript:void(0)"]');
+
+    console.log("Custom JS: Checking for div.dt-buttons (found: " + dtButtonsDiv.length + ")");
+    console.log("Custom JS: Checking for div.col-xs-4.text-left (found: " + targetDivButtons.length + ")");
+    console.log("Custom JS: Checking for <a> to remove in div.col-xs-4.text-left (found: " + elementToRemoveInTargetButtons.length + ")");
+
+    if (dtButtonsDiv.length && targetDivButtons.length) {
+        // Remove o elemento indesejado dentro da div de destino primeiro
+        if (elementToRemoveInTargetButtons.length) {
+            elementToRemoveInTargetButtons.remove();
+            console.log("Custom JS: Removed <a> with href='javascript:void(0)' from div.col-xs-4.text-left.");
+        } else {
+             console.warn("Custom JS: Element <a> with href='javascript:void(0)' not found in div.col-xs-4.text-left for removal.");
+        }
+
+        // Move a div .dt-buttons para dentro da div alvo
+        targetDivButtons.append(dtButtonsDiv);
+        console.log("Custom JS: Moved div.dt-buttons into div.col-xs-4.text-left");
+
+    } else {
+        if (!dtButtonsDiv.length) console.warn("Custom JS: div.dt-buttons not found for moving.");
+        if (!targetDivButtons.length) console.warn("Custom JS: div.col-xs-4.text-left not found for moving.");
+    }
+
+    // Movimentação 3: div.col-md-3.text-right com style="padding-top: 3px;" para dentro de div.col-xs-4.text-center
+    // Selecionando a div de origem usando classes e o atributo style
+    var sourceDivToMove = $('div.col-md-3.text-right[style="padding-top: 3px;"]');
+    var targetDivCenter = $('div.col-xs-4.text-center');
+    var titleLink = $('#aTitle'); // O link do título que já existe
+
+    console.log("Custom JS: Checking for source div to move (col-md-3 text-right with style) (found: " + sourceDivToMove.length + ")");
+    console.log("Custom JS: Checking for target div (col-xs-4.text-center) (found: " + targetDivCenter.length + ")");
+    console.log("Custom JS: Checking for #aTitle (found: " + titleLink.length + ")");
+
+
+    if (sourceDivToMove.length && targetDivCenter.length) {
+        // Remove o elemento <a> com href="javascript:void(0)" que pode estar na div de destino
+        var elementToRemoveInTargetCenter = targetDivCenter.find('a[href="javascript:void(0)"]');
+         console.log("Custom JS: Checking for <a> to remove in div.col-xs-4.text-center (found: " + elementToRemoveInTargetCenter.length + ")");
+         if (elementToRemoveInTargetCenter.length) {
+            elementToRemoveInTargetCenter.remove();
+            console.log("Custom JS: Removed <a> with href='javascript:void(0)' from div.col-xs-4.text-center.");
+        } else {
+             console.warn("Custom JS: Element <a> with href='javascript:void(0)' not found in div.col-xs-4.text-center for removal.");
+        }
+
+        // Move o link do título para a div de destino (se ainda não estiver lá)
+        // Isso garante que o título fique em cima, mesmo se já estiver na div
+        if (titleLink.length) {
+             targetDivCenter.prepend(titleLink); // Usa prepend para garantir que fique no início
+             console.log("Custom JS: Ensured #aTitle is at the beginning of div.col-xs-4.text-center.");
+        } else {
+             console.warn("Custom JS: #aTitle not found for positioning.");
+        }
+
+        // Move a div de origem para dentro da div de destino, após o título
+        targetDivCenter.append(sourceDivToMove);
+        console.log("Custom JS: Moved source div (col-md-3 text-right with style) into div.col-xs-4.text-center.");
+
+    } else {
+        if (!sourceDivToMove.length) console.warn("Custom JS: Source div (col-md-3 text-right with style) not found for moving.");
+        if (!targetDivCenter.length) console.warn("Custom JS: div.col-xs-4.text-center not found for moving.");
+    }
+    // --- FIM: MOVIMENTAÇÃO DE ELEMENTOS EXISTENTES ---
+
+// --- INÍCIO: OBSERVAR MUDANÇAS DE DISPLAY ---
+    var dvStatus = $('#dvStatus');
+    var navAlertsDiv = $('#dvAtualizacao');
+
+    if (dvStatus.length && navAlertsDiv.length) {
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    var currentDisplay = $(mutation.target).css('display');
+                    if (currentDisplay === 'inline') {
+                        $(mutation.target).css('display', 'block');
+                        navAlertsDiv.css('display', 'none');
+                    } else if (currentDisplay === 'none') {
+                        navAlertsDiv.css('display', 'block');
+                    }
+                }
+            });
+        });
+        var observerConfig = { attributes: true, attributeFilter: ['style'] };
+
+        observer.observe(dvStatus[0], observerConfig);
+        var initialDisplay = dvStatus.css('display');
+         if (initialDisplay === 'inline') {
+            dvStatus.css('display', 'block');
+            navAlertsDiv.css('display', 'none');
+        } else if (initialDisplay === 'none') {
+             navAlertsDiv.css('display', 'block');
+        }
+	}
+
+    // MANIPULAÇÃO DO CSS DA PÁGINA:
+    var styleElement = document.createElement('style'); // Cria um elemento style
     styleElement.textContent = `
-        body {
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden; /* Impede scroll horizontal no body */
+		body {
+			margin: 0;
+			padding: 0;
+			overflow-x: hidden;
+			background-color: #2e2d61;
+			width: 100vw;
+		}
+		.container-principal-da-tabela {
+			overflow-x: auto;
+			max-width: 100%;
+		}
+		#tabela-de-dados-clientes {
+            DISPLAY: BLOCK;
+			width: 100vw !important; /* Força a largura da tabela para 100% */
+			min-width: 0; /* Permite que a tabela diminua até 0, se necessário */
+			table-layout: fixed; /* Ajuda a manter a largura das colunas */
+		}
+		#tabela-de-dados-clientes tbody {
+			font-size: 1.1vw;
+		}
+		#output-area-3 {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			width: 100%;
+		}
+		#output-area-3 pre.info-card {
+			width: calc(20% - 8px) !important;
+			box-sizing: border-box;
+			padding: 10px;
+			border: 1px solid #ddd;
+			background-color: #fff;
+			margin: 0;
+			white-space: pre-wrap;
+			word-wrap: break-word;
+			position: relative; /* Necessário para posicionar o botão de cópia */
+			padding-bottom: 30px; /* Espaço para o botão */
+			font-family: courier new;
+		}
+		#output-area-3 .copy-button { /* Renomeado o ID */
+			position: absolute;
+			bottom: 5px;
+			right: 5px;
+			padding: 2px 5px;
+			font-size: 0.8em;
+			cursor: pointer;
+			background-color: #007bff;
+			color: white;
+			border: none;
+			border-radius: 3px;
+			z-index: 10; /* Garante que o botão fique acima do texto */
+		}
+		#output-area-3 .copy-button:hover { /* Renomeado o ID */
+			background-color: #0056b3;
+		}
+		nav {
+			padding: 0;
+		}
+			.navbar-default {
+				background-color: #424175;
+				border-style: none;
+				height: 100px;
+			}
+				#NavRow {
+					height: 100%;
+					}
+					#NavExcelBtn {
+						padding: 0px;
+						height: 100%;
+						width: 20%;
+					}
+						.excel_button {
+							background-color: #4c4b7f;
+							height: 90px;
+							width: 200px;
+							margin: 5px;
+							font-size: 20pt;
+							color: white;
+							border-style: none;
+						}
+					#NavTitle {
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+						justify-content: center;
+						padding: 0px;
+						height: 100%;
+						width: 60%;
+					}
+						#aTitle {
+							display: table-cell;
+							vertical-align: bottom;
+							text-align: center;
+							width: 100%;
+							height: 50%;
+							padding: 0px;
+							padding-top: 10px;
+						}
+						.text-title, .text-title:link, .text-title:visited, .text-title:hover, .text-title:active {
+							font-weight: normal;
+							text-transform: uppercase;
+							color: #fff;
+							text-align: center;
+						}
+						#NavAlerts{
+							text-align: center;
+							width: 100%;
+							height: 50%;
+						}
+							#dvAtualizacao, #dvStatus {
+								font-size: 15pt;
+								padding: 10px;
+								margin: auto;
+								width: 50%;
+								height: 40px;
+							}
+					#NavFilter {
+						padding: 0px;
+						height: 100%;
+						width: 20%;
+					}
+						div.dataTables_filter {
+							width: 100%;
+							height: 100%;
+						}
+							input#Filter {
+								padding: 20px;
+								background-color: #4c4b7f;
+								font-weight: normal;
+								height: 90px;
+								width: 200px;
+								margin: 5px;
+								font-size: 20pt;
+								color: white;
+								border-style: none;
+							}
+		button:hover {
+			background-color: #6b6ba8; /* Cor um pouco mais clara no hover */
+			box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
+						0 3px 3px -2px rgba(0, 0, 0, 0.2),
+						0 1px 8px 0 rgba(0, 0, 0, 0.12);
+		}
+		button:active {
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+						0 1px 10px -2px rgba(0, 0, 0, 0.2),
+						0 2px 16px 0 rgba(0, 0, 0, 0.12);
+			background-color: #7c7cba; /* Cor ainda mais clara ao clicar */
+		}
+        .col-md-6.text-center {
+            display: none !important;
         }
-        .container-principal-da-tabela {
-            overflow-x: auto; /* Permite scroll horizontal dentro do container da tabela */
-            max-width: 100vw; /* Garante que o container não exceda a largura da viewport */
-        }
-        #tabela-de-dados-clientes {
-            width: 100% !important; /* Força a largura da tabela para 100% */
-            min-width: 0; /* Permite que a tabela diminua até 0, se necessário (ajustar se precisar de largura mínima) */
-            table-layout: fixed; /* Ajuda a manter a largura das colunas */
-        }
-        #data-output-area-2 {
-            display: flex; /* Usa flexbox para layout dos cards */
-            flex-wrap: wrap; /* Permite que os cards quebrem linha */
-            gap: 10px; /* Espaço entre os cards */
-        }
-        #data-output-area-2 pre.info-card {
-            width: calc(20% - 8px) !important; /* Define a largura de cada card (ajustado para 5 cards por linha com gap) */
-            box-sizing: border-box; /* Inclui padding e border na largura */
-            padding: 10px;
-            border: 1px solid #ddd;
-            background-color: #fff;
-            margin: 0;
-            white-space: pre-wrap; /* Preserva quebras de linha e espaços */
-            word-wrap: break-word; /* Quebra palavras longas */
-        }
-    `;
+		.dataTables_wrapper {
+			background-color: white;
+		}
+		#tabela-titulo-tabela {
+			background-color: #424175 !important;
+		}
+		.form-control {
+			background-color: #4c4b7f;
+			border-color: #2e2d61;
+			border-radius: 0;
+		}
 
-    // Adiciona o elemento style ao cabeçalho do documento
-    document.head.appendChild(styleElement);
-});
+	`;
+    document.head.appendChild(styleElement); // Adiciona o elemento style ao head
 
-// Script 4: Aplica o filtro "real" na caixa de pesquisa global do DataTables.
-$(document).ready(function() {
-    // Encontra o input da caixa de pesquisa global do DataTables usando seu ID gerado.
-    // O ID é geralmente o ID da tabela + '_filter' + ' input'.
-    var filterInput = $('#tabela-de-dados-clientes_filter input');
-    var filterTerm = "real"; // O termo de filtro desejado
-
-    // Verifica se o input de filtro foi encontrado
+    // APLICAÇÃO DO FILTRO "real" PARA MOSTRAR SERVIÇOS APENAS DA REAL
+    var filterInput = $('#tabela-de-dados-clientes_filter input'); // Onde deve ser aplicado
+    var filterTerm = "real"; // Filtro
     if (filterInput.length) {
         try {
-            // Define o valor do input de filtro
             filterInput.val(filterTerm);
-
-            // Dispara um evento 'input' no elemento DOM nativo para simular a digitação
-            // e acionar o mecanismo de filtro do DataTables.
-            if (filterInput.get(0)) { // Verifica se o elemento DOM nativo existe
+            if (filterInput.get(0)) {
                 filterInput.get(0).dispatchEvent(new Event('input', { bubbles: true }));
             } else {
-                console.warn("Elemento DOM do input de filtro não encontrado.");
+                console.warn("Elemento DOM input filtro não encontrado.");
             }
-
-            console.log("Filtro '" + filterTerm + "' injetado e evento 'input' disparado.");
-
         } catch (e) {
-            console.error("Erro ao aplicar filtro 'real' na caixa de pesquisa:", e);
+            console.error("Erro ao aplicar filtro 'real':", e);
         }
     } else {
-        console.warn("Input da caixa de pesquisa do DataTables (#tabela-de-dados-clientes_filter input) não encontrado.");
+        console.warn("Input filtro DataTables não encontrado.");
     }
-});
 
-// Script 5: Ouve o evento 'draw.dt' do DataTables, processa os dados filtrados,
-// agrega por número de serviço, calcula o CHI (Clientes * Horas Interrompidas)
-// e popula as áreas de saída 1 e 2.
-$(document).ready(function() {
-    // Verifica se DataTables e a tabela existem
-    if ($.fn.DataTable && $('#tabela-de-dados-clientes').length) {
-        // Obtém a instância do DataTables (assumindo que já foi inicializada pelo Script 2)
-        var table = $('#tabela-de-dados-clientes').DataTable();
+	// PREENCHE AS ÁREAS CRIADAS, ATUALIZA COLUNA MUNICÍPIO PARA CÓDIGO DE LOCALIDADE
+    if (table) { // Verifica se DataTables foi inicializado
+        var clientLimitUpper = 100; // >= 100 clientes
+        var clientLimitLower = 50; // 50-99 clientes
 
-        // Verifica se a instância da tabela foi obtida
-        if (table) {
-            // Obtém as referências para as áreas de saída (assumindo que foram criadas pelo Script 1)
-            var outputArea1 = $('#data-output-area-1');
-            var outputArea2 = $('#data-output-area-2');
+        table.on('draw.dt', function() {
+			// Limpa áreas:
+            outputArea1.empty();
+            outputArea2.empty();
+            outputArea3.empty();
 
-            // Limite de clientes interrompidos para destaque na área 1
-            var clientLimit = 50; // nl no seu código original
+            var hasHighInterruptionServicesUpper = false; // Flag area 1 cor
+            var hasMediumInterruptionServices = false; // Flag area 2 cor
 
-            // Adiciona um listener para o evento 'draw.dt' (quando a tabela é redesenhada, ex: após filtro)
-            table.on('draw.dt', function() {
-                // Limpa o conteúdo atual das áreas de saída
-                outputArea1.empty();
-                outputArea2.empty();
+            var aggregatedData = {}; // Dados agregados
 
-                // Flag para verificar se há algum serviço acima do limite de clientes
-                var hasHighInterruptionServices = false;
+            table.rows({ search: 'applied' }).every(function() { // Itera linhas filtradas
+                var rowData = this.data();
+                var sn = rowData.nmb || 'N/A'; // Numero de Serviço
+                var ncl = parseInt(rowData.ncl, 10) || 0; // Numero de Clientes
+                var tpe = parseInt(rowData.tpe, 10) || 0; // Tempo de Pendência
 
-                // Objeto para agregar os dados por número de serviço (nmb)
-                var aggregatedData = {};
-
-                // Itera sobre as linhas *visíveis e filtradas* da tabela
-                table.rows({ search: 'applied' }).every(function() {
-                    var rowData = this.data(); // Dados da linha atual
-
-                    // Obtém as propriedades relevantes, usando fallback para 'N/A' ou 0
-                    var serviceNumber = rowData.nmb || 'N/A';
-                    var interruptedClients = parseInt(rowData.ncl, 10) || 0;
-                    var timeElapsed = parseInt(rowData.tpe, 10) || 0; // Tempo Pendência (em horas)
-                    // O CHI original (qch) não será somado diretamente, mas usado para o novo cálculo.
-                    // var chiOriginal = parseInt(rowData.qch, 10) || 0;
-
-                    var serviceType = rowData.tip || 'MA'; // Tipo Serviço (MA no seu código)
-                    var feeder = rowData.nar || 'N/A'; // Alimentador
-                    var voltage = rowData.vcv || 'N/A'; // VCV
-                    var statusRaw = rowData.sta || 'Pendente'; // Status (sta no seu código)
-                    var teamNumber = rowData.nve || 'Nenhum'; // Número da Equipe (nve no seu código)
-                    var municipality = rowData.nmu || 'N/A'; // Município (nmu no seu código)
-                    var trafoRef = rowData.trr || 'N/A'; // Trafo Referência
-                    var polo = rowData.rag || 'N/A'; // Polo (rag no seu código)
-                    var locationCode = rowData.cdl || 'N/A'; // Código Local (cdl no seu código)
-
-
-                    // Agrega os dados pelo número de serviço
-                    if (!aggregatedData[serviceNumber]) {
-                        aggregatedData[serviceNumber] = {
-                            nmb: serviceNumber,
-                            nclSum: interruptedClients,
-                            // Inicializa chiSum para ser calculado depois
-                            chiSum: 0, // Será calculado após a agregação
-                            tpeSum: timeElapsed,
-                            tipS: serviceType,
-                            nar: feeder,
-                            vcv: voltage,
-                            status: statusRaw, // Mantém o status original por enquanto
-                            numV: teamNumber,
-                            mun: municipality,
-                            trafoRef: trafoRef,
-                            pol: polo,
-                            loc: locationCode
-                            // Adicione outras propriedades que deseja manter ou unificar
-                        };
-                    } else {
-                        // Soma os valores de clientes e tempo para serviços com o mesmo número
-                        aggregatedData[serviceNumber].nclSum += interruptedClients;
-                        aggregatedData[serviceNumber].tpeSum += timeElapsed;
-                        // O CHI não é somado aqui, será calculado no final.
-                    }
-                });
-
-                // --- NOVO PASSO: Calcular o CHI (Clientes * Horas Interrompidas) após a agregação ---
-                for (var serviceNum in aggregatedData) {
-                     if (aggregatedData.hasOwnProperty(serviceNum)) {
-                         var aggregatedServiceData = aggregatedData[serviceNum];
-                         // Calcula o CHI como Clientes Interrompidos * Tempo Pendência
-                         aggregatedServiceData.chiSum = aggregatedServiceData.nclSum * aggregatedServiceData.tpeSum;
-                     }
-                }
-                // --- FIM DO NOVO PASSO ---
-
-
-                // Itera sobre os dados agregados para popular as áreas de saída
-                for (var serviceNum in aggregatedData) {
-                    // Verifica se a propriedade pertence ao objeto (evita propriedades herdadas)
-                    if (aggregatedData.hasOwnProperty(serviceNum)) {
-                        var aggregatedServiceData = aggregatedData[serviceNum];
-
-                        // Verifica se o número total de clientes interrompidos excede o limite
-                        if (aggregatedServiceData.nclSum > clientLimit) {
-                            hasHighInterruptionServices = true;
-
-                            // Determina o texto do status com base no valor bruto
-                            var statusText = aggregatedServiceData.status; // Começa com o valor bruto
-                            if (!statusText || statusText.trim() === 'P') {
-                                statusText = "Pendente";
-                            } else if (statusText.trim() === 'D') {
-                                statusText = "Designado";
-                            } else if (statusText.trim() === 'E') {
-                                statusText = "Em Execução";
-                            } else if (statusText.trim() === 'A') {
-                                statusText = "Acionado";
-                            } else {
-                                statusText = "Pendente"; // Fallback para outros valores
-                            }
-
-
-                            // Cria a string para a primeira área de saída (resumo)
-                            // Agora usando o chiSum calculado
-                            var outputString1 = `O servico ${aggregatedServiceData.tipS} ${aggregatedServiceData.nmb}, tem ${aggregatedServiceData.nclSum} clientes interrompidos ha ${aggregatedServiceData.tpeSum}h, resultando em um CHI de ${aggregatedServiceData.chiSum} no alimentador (${aggregatedServiceData.nar}) de ${aggregatedServiceData.mun}.`;
-
-                            // Cria um elemento <p> e adiciona à área de saída 1
-                            var element1 = $('<p>').text(outputString1);
-                            outputArea1.append(element1);
-
-                            // Cria a string para a segunda área de saída (card de informações)
-                            // Agora usando o chiSum calculado
-                            var outputString2 = `*INFORMATIVO EMERGENCIAL ❗*\n\n*Polo:* ${aggregatedServiceData.pol}\n*Local:* ${aggregatedServiceData.loc}\n*Tipo/Numero:* ${aggregatedServiceData.tipS} ${aggregatedServiceData.nmb}\n*Alimentador:* ${aggregatedServiceData.nar}\n*Clientes interrompidos:* ${aggregatedServiceData.nclSum}\n*Equipe:* ${aggregatedServiceData.numV}\n*Situacao:* ${statusText}\n*Observacao:*`;
-
-                            // Cria um elemento <pre> com a classe 'info-card' e adiciona à área de saída 2
-                            var element2 = $('<pre>').addClass('info-card').text(outputString2);
-                            outputArea2.append(element2);
-                        }
+				// Agrega dados:
+                if (!aggregatedData[sn]) { // Se não existe dados agregados para esse numero de serviço guarda os dados:
+                    aggregatedData[sn] = {
+                        nmb: sn, // Numero de Serviço
+                        nclSum: ncl, // Numero de Clientes
+                        chiSum: 0, // CHI
+                        tpeSum: tpe, // Tempo de Pendência
+                        tipS: rowData.tip || 'MA', // Tipo de Serviço
+                        nar: rowData.nar || 'N/A', // Numero do Alimentador
+                        vcv: rowData.vcv || 'N/A', //
+                        status: rowData.sta || 'Pendente', // Status
+                        numV: rowData.nve || 'Nenhuma', // Numero da Equipe
+                        mun: rowData.nmu || 'N/A', // Município
+                        trafoRef: rowData.trr || 'N/A', // Trafo de Referência
+                        pol: rowData.rag || 'N/A', // Polo
+                        loc: rowData.cdl || 'N/A' // Localidade
+                    };
+                } else { // Se já existir esse numero de serviço cadastrado
+                    aggregatedData[sn].nclSum += ncl; // Soma clientes
+                    if (tpe > aggregatedData[sn].tpeSum) { // Maior tpe
+                        aggregatedData[sn].tpeSum = tpe; // Guarda o maior tempo de Pendência
                     }
                 }
-
-                // Define a cor de fundo da área de saída 1 com base na flag
-                outputArea1.css('background-color', hasHighInterruptionServices ? 'red' : 'green');
             });
-        }
-    }
-});
 
-// Script 7: Contém funções de utilitário, como a recarga automática da página.
-setInterval(function() {
-    location.reload();
-}, 120000);
-
-// Script para modificar o título da página e o texto do título na barra de navegação
-// usando JavaScript, pois não há acesso direto ao HTML.
-$(document).ready(function() {
-    // 1. Modificar a tag <title> no cabeçalho da página
-    // Seleciona a tag <title>
-    var pageTitleElement = $('head title');
-    // Verifica se a tag title foi encontrada
-    if (pageTitleElement.length) {
-        // Define o novo título da página
-        pageTitleElement.text('Painel de Ocorrências Real');
-        console.log("Título da tag <title> modificado para 'Painel de Ocorrências Real'.");
-    } else {
-        console.warn("Tag <title> não encontrada no cabeçalho.");
-    }
-
-    // 2. Modificar o texto do título na barra de navegação
-    // Seleciona o elemento <a> com o ID 'aTitle'
-    var navTitleElement = $('#aTitle');
-    // Verifica se o elemento aTitle foi encontrado
-    if (navTitleElement.length) {
-        // Define o novo texto para o título na barra de navegação
-        navTitleElement.text('Painel de Ocorrências Real');
-        console.log("Texto do elemento #aTitle modificado para 'Painel de Ocorrências Real'.");
-    } else {
-        console.warn("Elemento #aTitle não encontrado na barra de navegação.");
-    }
-});
-
-// Script para ocultar um elemento específico identificado por um XPath.
-$(document).ready(function() {
-    // O XPath para o elemento alvo a ser ocultado
-    var targetElementXPath = "/html/body/div[2]/div[2]";
-
-    try {
-        // Avalia o XPath para encontrar o elemento
-        var result = document.evaluate(
-            targetElementXPath,
-            document, // Contexto de busca: o documento inteiro
-            null,     // Namespace resolver (não necessário para este XPath)
-            XPathResult.FIRST_ORDERED_NODE_TYPE, // Retorna o primeiro nó que corresponde
-            null
-        );
-
-        // Obtém o elemento encontrado
-        var targetElement = result.singleNodeValue;
-
-        // Verifica se o elemento foi encontrado
-        if (targetElement) {
-            // Aplica o estilo para ocultar o elemento
-            targetElement.style.display = 'none';
-            console.log("Elemento com XPath '" + targetElementXPath + "' ocultado.");
-        } else {
-            console.warn("Elemento com XPath '" + targetElementXPath + "' não encontrado para ocultar.");
-        }
-
-    } catch (e) {
-        console.error("Erro ao ocultar elemento usando XPath:", e);
-    }
-});
-
-// Script para mover um elemento de uma posição para outra,
-// substituindo e removendo elementos especificados por XPath.
-// Também adiciona estilos para posicionar o elemento movido na extrema direita e centralizado verticalmente,
-// removendo seu background e borda para exibir apenas o texto.
-$(document).ready(function() {
-    // XPath do elemento que será movido (a origem)
-    var sourceElementXPath = "/html/body/div[2]/div[3]/div[2]";
-    // XPath do elemento que será substituído (o destino na barra de navegação)
-    var targetElementXPath = "/html/body/nav/div/div[3]";
-    // XPath do elemento pai que será removido após a movimentação (o container original da div movida)
-    var parentToRemoveXPath = "/html/body/div[2]/div[3]";
-
-    try {
-        // 1. Encontrar os elementos usando XPath
-        var sourceResult = document.evaluate(sourceElementXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-        var targetResult = document.evaluate(targetElementXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-        var parentToRemoveResult = document.evaluate(parentToRemoveXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-
-        var sourceElement = sourceResult.singleNodeValue;
-        var targetElement = targetResult.singleNodeValue;
-        var parentToRemoveElement = parentToRemoveResult.singleNodeValue;
-
-        // Verifica se todos os elementos necessários foram encontrados
-        if (sourceElement && targetElement && parentToRemoveElement) {
-            // 2. Mover o elemento de origem para o lugar do elemento de destino
-            var targetParent = targetElement.parentNode; // Obtém o pai do elemento de destino (o div.row dentro do nav)
-
-            if (targetParent) {
-                // Substitui o elemento de destino pelo elemento de origem na nova posição
-                targetParent.replaceChild(sourceElement, targetElement);
-                console.log("Elemento '" + sourceElementXPath + "' movido para o lugar de '" + targetElementXPath + "'.");
-
-                // --- Adicionar estilos para posicionar o elemento movido e remover background/borda ---
-                // O elemento movido agora é um filho direto do div.row dentro do nav.
-                // Para posicioná-lo na extrema direita e centralizado verticalmente:
-                // 1. Tornar o pai (div.row) um container flex.
-                // 2. Centralizar os itens flex verticalmente.
-                // 3. Usar margin-left: auto no elemento movido para empurrá-lo para a direita.
-                // 4. Remover background e borda.
-
-                // Aplicar display: flex e align-items: center ao pai (div.row)
-                targetParent.style.display = 'flex';
-                targetParent.style.alignItems = 'center'; // Centraliza os filhos verticalmente
-
-                // Aplicar margin-left: auto e remover padding ao elemento movido
-                sourceElement.style.marginLeft = 'auto'; // Empurra o elemento para a direita na linha flex
-                sourceElement.style.padding = '0'; // Remove qualquer padding que possa estar vindo do estilo original
-
-                // Remover background e borda
-                sourceElement.style.backgroundColor = 'transparent'; // Define o background como transparente
-                sourceElement.style.border = 'none'; // Remove a borda
-
-                // Opcional: Remover estilos de largura fixa ou float se existirem e estiverem causando problemas
-                sourceElement.style.width = 'auto'; // Garante que a largura seja automática
-                sourceElement.style.float = 'none'; // Garante que não haja float
-
-                console.log("Estilos de posicionamento, remoção de background e borda aplicados ao elemento movido.");
-                // --- Fim da adição de estilos ---
-
-
-                // 3. Remover o elemento pai especificado (o container original da div movida)
-                parentToRemoveElement.remove();
-                console.log("Elemento '" + parentToRemoveXPath + "' removido.");
-
-            } else {
-                console.warn("Elemento pai do destino '" + targetElementXPath + "' não encontrado. Não foi possível mover o elemento.");
+            // Calcula CHI após agregação
+            for (var sn in aggregatedData) {
+                if (aggregatedData.hasOwnProperty(sn)) {
+                    var ad = aggregatedData[sn];
+                    ad.chiSum = ad.nclSum * ad.tpeSum; // CHI = Clientes * Tempo
+                }
             }
 
-        } else {
-            // Mensagens de aviso se algum elemento não for encontrado
-            if (!sourceElement) console.warn("Elemento de origem '" + sourceElementXPath + "' não encontrado. Não foi possível realizar a operação.");
-            if (!targetElement) console.warn("Elemento de destino '" + targetElementXPath + "' não encontrado. Não foi possível realizar a operação.");
-            if (!parentToRemoveElement) console.warn("Elemento pai a ser removido '" + parentToRemoveXPath + "' não encontrado. A remoção não será realizada.");
-        }
+            // Converte o objeto aggregatedData em um array para poder ordenar
+            var aggregatedDataArray = Object.values(aggregatedData);
 
-    } catch (e) {
-        console.error("Erro ao mover, remover e estilizar elementos usando XPath:", e);
+            // Ordena o array por nclSum em ordem decrescente
+            aggregatedDataArray.sort(function(a, b) {
+                return b.nclSum - a.nclSum;
+            });
+
+            // Popula áreas de saída e verifica flags de cor
+            aggregatedDataArray.forEach(function(ad) { // Itera sobre o array ordenado
+                var statusText = ad.status; // Formata status
+                if (!statusText || statusText.trim() === 'P') statusText = "Pendente";
+                else if (statusText.trim() === 'D') statusText = "Designado";
+                else if (statusText.trim() === 'E') statusText = "Em Execução";
+                else if (statusText.trim() === 'A') statusText = "Acionado";
+                else statusText = "Pendente";
+
+                // Cria a string de cada serviço
+                var outputString = `O servico ${ad.tipS} ${ad.nmb}, tem ${ad.nclSum} clientes interrompidos ha ${ad.tpeSum}h, resultando em um CHI de ${ad.chiSum} no alimentador (${ad.nar}) de ${ad.mun}.`; // Use ad.mun here
+
+                // Se o serviço contem um numero de clientes acima do limite maior:
+                if (ad.nclSum >= clientLimitUpper) {
+                    hasHighInterruptionServicesUpper = true; // Define a flag de cor
+                    outputArea1.append($('<p>').text(outputString)); // Cria a tag paragrafo com a string
+
+					// Cria o informativo
+                    var outputString2 = `*INFORMATIVO EMERGENCIAL ❗*\n\n*Polo:* ${ad.pol}\n*Local:* ${ad.loc}\n*Tipo/Numero:* ${ad.tipS} ${ad.nmb}\n*Alimentador:* ${ad.nar}\n*Clientes interrompidos:* ${ad.nclSum}\n*Equipe:* ${ad.numV}\n*Situacao:* ${statusText}\n*Observacao:*`;
+
+                    // Cria o card do informativo
+                    var cardElement = $('<pre>').addClass('info-card').text(outputString2);
+
+                    // Cria o botão de cópia do informativo
+                    var copyButton = $('<button>').addClass('copy-button').text('Copiar');
+
+                    // Adiciona o evento de clique ao botão
+                    copyButton.on('click', function() {
+                        // Copia o informativo do card:
+                        var fullCardText = $(this).parent('.info-card').text();
+                        var buttonText = $(this).text();
+                        var textToCopy = fullCardText.replace(buttonText, '').trim();
+						// Simula um CTRL + C a partir da API Clipboard
+                        navigator.clipboard.writeText(textToCopy).then(function() {
+                            // Feedback visual (opcional)
+                            var originalButtonText = $(this).text(); // Guarda o texto original
+                            $(this).text('Copiado!').prop('disabled', true);
+                            setTimeout(() => {
+                                $(this).text(originalButtonText).prop('disabled', false); // Restaura o texto original
+                            }, 2000); // Volta ao texto original após 2 segundos
+                        }.bind(this)).catch(function(err) {
+                            console.error('Erro ao copiar texto: ', err);
+                            // Feedback de erro (opcional)
+                            var originalButtonText = $(this).text(); // Guarda o texto original
+                            $(this).text('Erro!').prop('disabled', true);
+                            setTimeout(() => {
+                                $(this).text(originalButtonText).prop('disabled', false); // Restaura o texto original
+                            }, 2000);
+                        }.bind(this));
+                    });
+
+                    // Adiciona o botão ao card
+                    cardElement.append(copyButton);
+
+                    // Adiciona o card já com o botão à área de saída 3
+                    outputArea3.append(cardElement);
+
+                // Se o serviço contem um numero de clientes entre o limite menor e o maior:
+                } else if (ad.nclSum >= clientLimitLower && ad.nclSum < clientLimitUpper) {
+                    hasMediumInterruptionServices = true; // Define a flag da cor
+                    outputArea2.append($('<p>').text(outputString)); // Cria a tag paragrafo com a string
+                }
+            });
+
+            // Define a cor de fundo das Areas com base na flag
+			if (hasHighInterruptionServicesUpper){
+				outputArea1.css('background-color', 'red');
+				outputArea2.css('background-color', hasMediumInterruptionServices ? 'orange' : '#424175');
+			} else {
+				if (hasMediumInterruptionServices){
+					outputArea1.css('background-color', '#2e2d61');
+					outputArea2.css('background-color', 'orange');
+				} else {
+					outputArea1.css('background-color', 'lime');
+					outputArea2.css('background-color', 'lime');
+				}
+			}
+
+			// Atualiza a columa 9 (Município) e troca seus valores pelos códigos de localidade
+            var municipioColumnIndex = 8; // Coluna 9
+            table.rows({ search: 'applied' }).nodes().each(function(rowNode, index) {
+                var rowData = table.row(rowNode).data();
+                // Encontra a célula da coluna município dentro desta linha
+                var cell = $(rowNode).find('td').eq(municipioColumnIndex);
+                // Atualiza o texto da célula com a propriedade 'mun' dos dados originais da linha
+                cell.text(rowData.mun || 'N/A');
+            });
+        });
     }
-});
 
-// Script para encontrar e remover o elemento container de carregamento
-// identificado por XPath. Remover o container também removerá seus filhos.
-
-$(document).ready(function() {
-    // XPath da div container da barra de progresso a ser removida.
-    // Remover este elemento também removerá a barra de progresso que está dentro dele.
-    var progressContainerXPath = "/html/body/div[3]/div/div/div[3]";
-
-    try {
-        // Encontrar o elemento container usando XPath
-        var progressContainerResult = document.evaluate(
-            progressContainerXPath,
-            document,
-            null,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null
-        );
-        var progressContainerElement = progressContainerResult.singleNodeValue;
-
-        // Verifica se o elemento container foi encontrado
-        if (progressContainerElement) {
-            // Remove o elemento container da barra de progresso do DOM
-            progressContainerElement.remove();
-            console.log("Elemento container de carregamento ('" + progressContainerXPath + "') removido.");
-        } else {
-            console.warn("Elemento container de carregamento ('" + progressContainerXPath + "') não encontrado para remover.");
-        }
-
-    } catch (e) {
-        console.error("Erro ao remover o elemento container de carregamento usando XPath:", e);
-    }
+    // MODIFICAR O TÍTULO DA PÁGINA E NO NAVBAR
+    $('head title').text('Painel de Ocorrências Real'); // Head
+    $('#aTitle').text('Painel de Ocorrências Real'); // Navbar
 });
