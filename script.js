@@ -5,7 +5,6 @@
 // @description  Implementa funções ao painel de Bordo Cemig
 // @author       Marco Guedes
 // @match        *https://geo.cemig.com.br/painel_de_bordo/Geo/Clientes*
-// @grant        none // Adicionei isso, é uma boa prática, ou coloque as grants que você usa
 // @updateURL    https://raw.githubusercontent.com/SOADDGmr/real-painel_de_bordo/main/script.js
 // @downloadURL  https://raw.githubusercontent.com/SOADDGmr/real-painel_de_bordo/main/script.js
 // ==/UserScript==
