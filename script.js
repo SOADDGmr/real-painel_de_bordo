@@ -5,8 +5,8 @@
 // @description  Implementa funções ao painel de Bordo Cemig
 // @author       Marco Guedes
 // @match        *https://geo.cemig.com.br/painel_de_bordo/Geo/Clientes*
-// @updateURL    https://raw.githubusercontent.com/SOADDGmr/real-painel_de_bordo/main/script.js
-// @downloadURL  https://raw.githubusercontent.com/SOADDGmr/real-painel_de_bordo/main/script.js
+// @updateURL    https://raw.githubusercontent.com/SOADDGmr/real-painel_de_bordo/refs/heads/main/script.js
+// @downloadURL  https://raw.githubusercontent.com/SOADDGmr/real-painel_de_bordo/refs/heads/main/script.js
 // ==/UserScript==
 
 // TIMER PARA RECARREGAR A PÁGINA
