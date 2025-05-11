@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Painel de Bordo ++
 // @namespace    marco.guedes.e259671
-// @version      1.0.3
+// @version      1.1.0
 // @description  Implementa funções ao painel de Bordo Cemig
 // @author       Marco Guedes
 // @match        *https://geo.cemig.com.br/painel_de_bordo/Geo/Clientes*
@@ -13,8 +13,9 @@
 setInterval(function() { location.reload(); }, 120000); // 2 Minutos
 
 $(document).ready(function() {
-	var clientLimitUpper = 100; // >= 100 clientes
-	var clientLimitLower = 50; // 50-99 clientes
+
+	var clientLimitUpper = 100; // Limite superior (para informativo e faixa vermelha)
+	var clientLimitLower = 50; // Limite inferior (para faixa laranja)
     var filterTerm = "real"; // Filtro
 
     // CRIAÇÃO DAS ÁREAS:
@@ -82,8 +83,8 @@ $(document).ready(function() {
 			targetDivCenter.append(sourceDivToMove);
 
 		}
-    
-	// REMOVER O TEXTO PESQUISAR E COLOCAR DENTRO DO INPUT
+
+	// REMOVER O TEXTO PESQUISAR DE FORA E COLOCA DENTRO DO INPUT
     var filterLabel = $('#tabela-de-dados-clientes_filter > label');
     if (filterLabel.length) {
         var filterInput = filterLabel.find('input[type="search"]');
@@ -96,7 +97,20 @@ $(document).ready(function() {
             });
 		}
     }
-	
+
+	// ALTERA TEXTO DE ELEMENTOS
+	const headTable = $('th#tabela-titulo-tabela');
+	if (headTable.eq(0).length > 0) {headTable.eq(0).text('Serviço');}
+	if (headTable.eq(1).length > 0) {headTable.eq(1).text('Tipo');}
+	if (headTable.eq(2).length > 0) {headTable.eq(2).text('Alimentador');}
+	if (headTable.eq(3).length > 0) {headTable.eq(3).text('Clientes');}
+	if (headTable.eq(4).length > 0) {headTable.eq(4).text('Tempo');}
+	if (headTable.eq(6).length > 0) {headTable.eq(6).text('Status');}
+	if (headTable.eq(7).length > 0) {headTable.eq(7).text('Equipe');}
+	if (headTable.eq(11).length > 0) {headTable.eq(11).text('CHI');}
+	//if (headTable.eq(8).length > 0) {headTable.eq(8).text('Município');}
+	if (headTable.eq(19).length > 0) {headTable.eq(19).text('Referência');}
+
 	// APLICAÇÃO DO FILTRO "real" PARA MOSTRAR SERVIÇOS APENAS DA REAL
     var filterInput = $('#tabela-de-dados-clientes_filter input'); // Onde deve ser aplicado
     if (filterInput.length) {
@@ -171,9 +185,12 @@ $(document).ready(function() {
 
 	const selector12 = '#tabela-de-dados-clientes > tfoot > tr';
     $(selector12).css('background-color', '#424175');
-	
+
 	const selector13 = '#tabela-de-dados-clientes_processing';
     $(selector13).css('display', 'none');
+
+	const selector14 = '#tabela-de-dados-clientes > tfoot > tr > th > input';
+	$(selector14).removeAttr('style'); // Remove completamente o atributo style
 
     // MUDAR NAVALERTS
     var dvStatus = $('#dvStatus');
@@ -484,17 +501,39 @@ $(document).ready(function() {
 				width: 100vw !important; /* Força a largura da tabela para 100% */
 				min-width: 0; /* Permite que a tabela diminua até 0, se necessário */
 				table-layout: fixed; /* Ajuda a manter a largura das colunas */
+				margin: 0 !important;
 			}
+				.table-bordered {
+					border: 1px solid #2e2d61;
+					border-right-width: 0px;
+					border-left-width: 0px;
+				}
 				#tabela-titulo-tabela {
 					background-color: #424175 !important;
+					border: 1px solid #2e2d61;
+					height: 50px;
+					vertical-align: middle;
+					font-size: 1.3vw;
+					text-transform: uppercase;
+				}
+				table.dataTable thead .sorting:after {
+					display: none;
 				}
 				#tabela-de-dados-clientes tbody {
-					font-size: 1.1vw;
+					font-size: 1.3vw;
+				}
+				.table>tfoot>tr>th, .table-bordered>tfoot>tr>td {
+					border: 1px solid #2e2d61;
+					height: 40px;
+					padding: 0 !important;
 				}
 				.form-control {
 					background-color: #4c4b7f;
 					border-color: #2e2d61;
 					border-radius: 0;
+					padding-left: 15px;
+					color: white;
+					height: 100%;
 				}
 		#output-area-3 {
 			margin-top: -9px;
@@ -540,6 +579,4 @@ $(document).ready(function() {
         }
 	`;
     document.head.appendChild(styleElement); // Adiciona o elemento style ao head
-
-
 });
