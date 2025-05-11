@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Painel de Bordo ++
 // @namespace    marco.guedes.e259671
-// @version      1.0.2
+// @version      1.0.3
 // @description  Implementa funções ao painel de Bordo Cemig
 // @author       Marco Guedes
 // @match        *https://geo.cemig.com.br/painel_de_bordo/Geo/Clientes*
@@ -13,49 +13,28 @@
 setInterval(function() { location.reload(); }, 120000); // 2 Minutos
 
 $(document).ready(function() {
-
-    // OCULTA A DIV QUE CONTEM OS CHECKBOX
-    var elementToHide = $('body > div:nth-child(5) > div.col-md-6.text-center');
-    if (elementToHide.length) { elementToHide.css('display', 'none'); }
+	var clientLimitUpper = 100; // >= 100 clientes
+	var clientLimitLower = 50; // 50-99 clientes
+    var filterTerm = "real"; // Filtro
 
     // CRIAÇÃO DAS ÁREAS:
     var outputArea1, outputArea2, outputArea3;
 
 		// ÁREA 1 (Serviços com 100 clientes ou mais)
-		outputArea1 = $('#output-area-1');
-		if (!outputArea1.length) {
-			outputArea1 = $('<div>').attr('id', 'output-area-1').css({
-				'padding': '12px 15px 1px 15px',
-				'color': 'white',
-				'text-align': 'center',
-				'font-size': '1.3vw',
-				'background-color': 'lime',
-			});
+		if (!$('#output-area-1').length) {
+			outputArea1 = $('<div>').attr('id', 'output-area-1');
 			$('nav.navbar').after(outputArea1); // Insere após o navbar
 		}
 
 		// ÁREA 2 (Serviços com mais de 50 clientes e menos de 100)
-		outputArea2 = $('#output-area-2');
-		if (!outputArea2.length) {
-			outputArea2 = $('<div>').attr('id', 'output-area-2').css({
-				'padding': '12px 15px 1px 15px',
-				'color': 'white',
-				'text-align': 'center',
-				'font-size': '1.3vw',
-				'background-color': 'lime',
-			});
+		if (!$('#output-area-2').length) {
+			outputArea2 = $('<div>').attr('id', 'output-area-2');
 			outputArea1.after(outputArea2); // Insere após a area 1
         }
 
 		// ÁREA 3 (Informativos)
-		outputArea3 = $('#output-area-3');
-		if (!outputArea3.length) {
-			outputArea3 = $('<div>').attr('id', 'output-area-3').css({
-				'margin-top': '-9px',
-				'padding': '10px',
-				'border': '1px solid #ccc',
-				'background-color': '#f9f9f9'
-			});
+		if (!$('#output-area-3').length) {
+			outputArea3 = $('<div>').attr('id', 'output-area-3');
 			$('.dataTables_wrapper').after(outputArea3); // Insere depois da tabela
         }
 
@@ -103,7 +82,8 @@ $(document).ready(function() {
 			targetDivCenter.append(sourceDivToMove);
 
 		}
-    // REMOVER O PESQUISAR E COLOCAR DENTRO DO INPUT
+    
+	// REMOVER O TEXTO PESQUISAR E COLOCAR DENTRO DO INPUT
     var filterLabel = $('#tabela-de-dados-clientes_filter > label');
     if (filterLabel.length) {
         var filterInput = filterLabel.find('input[type="search"]');
@@ -115,6 +95,23 @@ $(document).ready(function() {
                 }
             });
 		}
+    }
+	
+	// APLICAÇÃO DO FILTRO "real" PARA MOSTRAR SERVIÇOS APENAS DA REAL
+    var filterInput = $('#tabela-de-dados-clientes_filter input'); // Onde deve ser aplicado
+    if (filterInput.length) {
+        try {
+            filterInput.val(filterTerm);
+            if (filterInput.get(0)) {
+                filterInput.get(0).dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                console.warn("Elemento DOM input filtro não encontrado.");
+            }
+        } catch (e) {
+            console.error("Erro ao aplicar filtro 'real':", e);
+        }
+    } else {
+        console.warn("Input filtro DataTables não encontrado.");
     }
 
     // OCULTANDO COLUNAS INICIAIS INDESEJADAS:
@@ -133,7 +130,7 @@ $(document).ready(function() {
         }
     }
 
-	// REMOVENDO STYLE INLINE:
+	// MANIPULANDO ATRIBUTOS INLINE:
 	const selector1 = 'body > nav > div > div.col-xs-4.text-left';
 	$(selector1).removeAttr('style'); // Remove completamente o atributo style
 	$(selector1).attr('id', 'NavExcelBtn'); // Adiciona um atributo id com o valor "NavExcelBtn"
@@ -174,104 +171,11 @@ $(document).ready(function() {
 
 	const selector12 = '#tabela-de-dados-clientes > tfoot > tr';
     $(selector12).css('background-color', '#424175');
+	
+	const selector13 = '#tabela-de-dados-clientes_processing';
+    $(selector13).css('display', 'none');
 
-    // --- INÍCIO: MOVIMENTAÇÃO DE ELEMENTOS EXISTENTES ---
-    // Movimentação 1: div#tabela-de-dados-clientes_filter para dentro de div#dvColTiLogo e remover img#imgLogoTI
-    var filterDiv = $('#tabela-de-dados-clientes_filter');
-    var targetDivLogo = $('#dvColTiLogo');
-    var logoImg = $('#imgLogoTI');
-
-    console.log("Custom JS: Checking for #tabela-de-dados-clientes_filter (found: " + filterDiv.length + ")");
-    console.log("Custom JS: Checking for #dvColTiLogo (found: " + targetDivLogo.length + ")");
-    console.log("Custom JS: Checking for #imgLogoTI (found: " + logoImg.length + ")");
-
-    if (filterDiv.length && targetDivLogo.length) {
-        // Move a div do filtro para dentro da div alvo do logo
-        targetDivLogo.append(filterDiv);
-        console.log("Custom JS: Moved #tabela-de-dados-clientes_filter into #dvColTiLogo");
-    } else {
-        if (!filterDiv.length) console.warn("Custom JS: #tabela-de-dados-clientes_filter not found for moving.");
-        if (!targetDivLogo.length) console.warn("Custom JS: #dvColTiLogo not found for moving.");
-    }
-
-    if (logoImg.length) {
-        // Remove a imagem do logo
-        logoImg.remove();
-        console.log("Custom JS: Removed #imgLogoTI");
-    } else {
-        console.warn("Custom JS: #imgLogoTI not found for removal.");
-    }
-
-    // Movimentação 2: div.dt-buttons para dentro de div.col-xs-4.text-left e remover <a> com href="javascript:void(0)"
-    var dtButtonsDiv = $('div.dt-buttons');
-    var targetDivButtons = $('div.col-xs-4.text-left');
-    // Elemento a ser removido dentro da div de destino (div.col-xs-4.text-left)
-    var elementToRemoveInTargetButtons = targetDivButtons.find('a[href="javascript:void(0)"]');
-
-    console.log("Custom JS: Checking for div.dt-buttons (found: " + dtButtonsDiv.length + ")");
-    console.log("Custom JS: Checking for div.col-xs-4.text-left (found: " + targetDivButtons.length + ")");
-    console.log("Custom JS: Checking for <a> to remove in div.col-xs-4.text-left (found: " + elementToRemoveInTargetButtons.length + ")");
-
-    if (dtButtonsDiv.length && targetDivButtons.length) {
-        // Remove o elemento indesejado dentro da div de destino primeiro
-        if (elementToRemoveInTargetButtons.length) {
-            elementToRemoveInTargetButtons.remove();
-            console.log("Custom JS: Removed <a> with href='javascript:void(0)' from div.col-xs-4.text-left.");
-        } else {
-             console.warn("Custom JS: Element <a> with href='javascript:void(0)' not found in div.col-xs-4.text-left for removal.");
-        }
-
-        // Move a div .dt-buttons para dentro da div alvo
-        targetDivButtons.append(dtButtonsDiv);
-        console.log("Custom JS: Moved div.dt-buttons into div.col-xs-4.text-left");
-
-    } else {
-        if (!dtButtonsDiv.length) console.warn("Custom JS: div.dt-buttons not found for moving.");
-        if (!targetDivButtons.length) console.warn("Custom JS: div.col-xs-4.text-left not found for moving.");
-    }
-
-    // Movimentação 3: div.col-md-3.text-right com style="padding-top: 3px;" para dentro de div.col-xs-4.text-center
-    // Selecionando a div de origem usando classes e o atributo style
-    var sourceDivToMove = $('div.col-md-3.text-right[style="padding-top: 3px;"]');
-    var targetDivCenter = $('div.col-xs-4.text-center');
-    var titleLink = $('#aTitle'); // O link do título que já existe
-
-    console.log("Custom JS: Checking for source div to move (col-md-3 text-right with style) (found: " + sourceDivToMove.length + ")");
-    console.log("Custom JS: Checking for target div (col-xs-4.text-center) (found: " + targetDivCenter.length + ")");
-    console.log("Custom JS: Checking for #aTitle (found: " + titleLink.length + ")");
-
-
-    if (sourceDivToMove.length && targetDivCenter.length) {
-        // Remove o elemento <a> com href="javascript:void(0)" que pode estar na div de destino
-        var elementToRemoveInTargetCenter = targetDivCenter.find('a[href="javascript:void(0)"]');
-         console.log("Custom JS: Checking for <a> to remove in div.col-xs-4.text-center (found: " + elementToRemoveInTargetCenter.length + ")");
-         if (elementToRemoveInTargetCenter.length) {
-            elementToRemoveInTargetCenter.remove();
-            console.log("Custom JS: Removed <a> with href='javascript:void(0)' from div.col-xs-4.text-center.");
-        } else {
-             console.warn("Custom JS: Element <a> with href='javascript:void(0)' not found in div.col-xs-4.text-center for removal.");
-        }
-
-        // Move o link do título para a div de destino (se ainda não estiver lá)
-        // Isso garante que o título fique em cima, mesmo se já estiver na div
-        if (titleLink.length) {
-             targetDivCenter.prepend(titleLink); // Usa prepend para garantir que fique no início
-             console.log("Custom JS: Ensured #aTitle is at the beginning of div.col-xs-4.text-center.");
-        } else {
-             console.warn("Custom JS: #aTitle not found for positioning.");
-        }
-
-        // Move a div de origem para dentro da div de destino, após o título
-        targetDivCenter.append(sourceDivToMove);
-        console.log("Custom JS: Moved source div (col-md-3 text-right with style) into div.col-xs-4.text-center.");
-
-    } else {
-        if (!sourceDivToMove.length) console.warn("Custom JS: Source div (col-md-3 text-right with style) not found for moving.");
-        if (!targetDivCenter.length) console.warn("Custom JS: div.col-xs-4.text-center not found for moving.");
-    }
-    // --- FIM: MOVIMENTAÇÃO DE ELEMENTOS EXISTENTES ---
-
-// --- INÍCIO: OBSERVAR MUDANÇAS DE DISPLAY ---
+    // MUDAR NAVALERTS
     var dvStatus = $('#dvStatus');
     var navAlertsDiv = $('#dvAtualizacao');
 
@@ -301,197 +205,8 @@ $(document).ready(function() {
         }
 	}
 
-    // MANIPULAÇÃO DO CSS DA PÁGINA:
-    var styleElement = document.createElement('style'); // Cria um elemento style
-    styleElement.textContent = `
-		body {
-			margin: 0;
-			padding: 0;
-			overflow-x: hidden;
-			background-color: #2e2d61;
-			width: 100vw;
-		}
-		.container-principal-da-tabela {
-			overflow-x: auto;
-			max-width: 100%;
-		}
-		#tabela-de-dados-clientes {
-            DISPLAY: BLOCK;
-			width: 100vw !important; /* Força a largura da tabela para 100% */
-			min-width: 0; /* Permite que a tabela diminua até 0, se necessário */
-			table-layout: fixed; /* Ajuda a manter a largura das colunas */
-		}
-		#tabela-de-dados-clientes tbody {
-			font-size: 1.1vw;
-		}
-		#output-area-3 {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 10px;
-			width: 100%;
-		}
-		#output-area-3 pre.info-card {
-			width: calc(20% - 8px) !important;
-			box-sizing: border-box;
-			padding: 10px;
-			border: 1px solid #ddd;
-			background-color: #fff;
-			margin: 0;
-			white-space: pre-wrap;
-			word-wrap: break-word;
-			position: relative; /* Necessário para posicionar o botão de cópia */
-			padding-bottom: 30px; /* Espaço para o botão */
-			font-family: courier new;
-		}
-		#output-area-3 .copy-button { /* Renomeado o ID */
-			position: absolute;
-			bottom: 5px;
-			right: 5px;
-			padding: 2px 5px;
-			font-size: 0.8em;
-			cursor: pointer;
-			background-color: #007bff;
-			color: white;
-			border: none;
-			border-radius: 3px;
-			z-index: 10; /* Garante que o botão fique acima do texto */
-		}
-		#output-area-3 .copy-button:hover { /* Renomeado o ID */
-			background-color: #0056b3;
-		}
-		nav {
-			padding: 0;
-		}
-			.navbar-default {
-				background-color: #424175;
-				border-style: none;
-				height: 100px;
-			}
-				#NavRow {
-					height: 100%;
-					}
-					#NavExcelBtn {
-						padding: 0px;
-						height: 100%;
-						width: 20%;
-					}
-						.excel_button {
-							background-color: #4c4b7f;
-							height: 90px;
-							width: 200px;
-							margin: 5px;
-							font-size: 20pt;
-							color: white;
-							border-style: none;
-						}
-					#NavTitle {
-						display: flex;
-						flex-direction: column;
-						align-items: center;
-						justify-content: center;
-						padding: 0px;
-						height: 100%;
-						width: 60%;
-					}
-						#aTitle {
-							display: table-cell;
-							vertical-align: bottom;
-							text-align: center;
-							width: 100%;
-							height: 50%;
-							padding: 0px;
-							padding-top: 10px;
-						}
-						.text-title, .text-title:link, .text-title:visited, .text-title:hover, .text-title:active {
-							font-weight: normal;
-							text-transform: uppercase;
-							color: #fff;
-							text-align: center;
-						}
-						#NavAlerts{
-							text-align: center;
-							width: 100%;
-							height: 50%;
-						}
-							#dvAtualizacao, #dvStatus {
-								font-size: 15pt;
-								padding: 10px;
-								margin: auto;
-								width: 50%;
-								height: 40px;
-							}
-					#NavFilter {
-						padding: 0px;
-						height: 100%;
-						width: 20%;
-					}
-						div.dataTables_filter {
-							width: 100%;
-							height: 100%;
-						}
-							input#Filter {
-								padding: 20px;
-								background-color: #4c4b7f;
-								font-weight: normal;
-								height: 90px;
-								width: 200px;
-								margin: 5px;
-								font-size: 20pt;
-								color: white;
-								border-style: none;
-							}
-		button:hover {
-			background-color: #6b6ba8; /* Cor um pouco mais clara no hover */
-			box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
-						0 3px 3px -2px rgba(0, 0, 0, 0.2),
-						0 1px 8px 0 rgba(0, 0, 0, 0.12);
-		}
-		button:active {
-			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
-						0 1px 10px -2px rgba(0, 0, 0, 0.2),
-						0 2px 16px 0 rgba(0, 0, 0, 0.12);
-			background-color: #7c7cba; /* Cor ainda mais clara ao clicar */
-		}
-        .col-md-6.text-center {
-            display: none !important;
-        }
-		.dataTables_wrapper {
-			background-color: white;
-		}
-		#tabela-titulo-tabela {
-			background-color: #424175 !important;
-		}
-		.form-control {
-			background-color: #4c4b7f;
-			border-color: #2e2d61;
-			border-radius: 0;
-		}
-
-	`;
-    document.head.appendChild(styleElement); // Adiciona o elemento style ao head
-
-    // APLICAÇÃO DO FILTRO "real" PARA MOSTRAR SERVIÇOS APENAS DA REAL
-    var filterInput = $('#tabela-de-dados-clientes_filter input'); // Onde deve ser aplicado
-    var filterTerm = "real"; // Filtro
-    if (filterInput.length) {
-        try {
-            filterInput.val(filterTerm);
-            if (filterInput.get(0)) {
-                filterInput.get(0).dispatchEvent(new Event('input', { bubbles: true }));
-            } else {
-                console.warn("Elemento DOM input filtro não encontrado.");
-            }
-        } catch (e) {
-            console.error("Erro ao aplicar filtro 'real':", e);
-        }
-    } else {
-        console.warn("Input filtro DataTables não encontrado.");
-    }
-
 	// PREENCHE AS ÁREAS CRIADAS, ATUALIZA COLUNA MUNICÍPIO PARA CÓDIGO DE LOCALIDADE
     if (table) { // Verifica se DataTables foi inicializado
-        var clientLimitUpper = 100; // >= 100 clientes
-        var clientLimitLower = 50; // 50-99 clientes
 
         table.on('draw.dt', function() {
 			// Limpa áreas:
@@ -519,7 +234,6 @@ $(document).ready(function() {
                         tpeSum: tpe, // Tempo de Pendência
                         tipS: rowData.tip || 'MA', // Tipo de Serviço
                         nar: rowData.nar || 'N/A', // Numero do Alimentador
-                        vcv: rowData.vcv || 'N/A', //
                         status: rowData.sta || 'Pendente', // Status
                         numV: rowData.nve || 'Nenhuma', // Numero da Equipe
                         mun: rowData.nmu || 'N/A', // Município
@@ -569,7 +283,7 @@ $(document).ready(function() {
                     outputArea1.append($('<p>').text(outputString)); // Cria a tag paragrafo com a string
 
 					// Cria o informativo
-                    var outputString2 = `*INFORMATIVO EMERGENCIAL ❗*\n\n*Polo:* ${ad.pol}\n*Local:* ${ad.loc}\n*Tipo/Numero:* ${ad.tipS} ${ad.nmb}\n*Alimentador:* ${ad.nar}\n*Clientes interrompidos:* ${ad.nclSum}\n*Equipe:* ${ad.numV}\n*Situacao:* ${statusText}\n*Observacao:*`;
+                    var outputString2 = `*❗ INFORMATIVO EMERGENCIAL ❗*\n\n*Polo:* ${ad.pol}\n*Local:* ${ad.loc}\n*Tipo/Numero:* ${ad.tipS} ${ad.nmb}\n*Alimentador:* ${ad.nar}\n*Clientes interrompidos:* ${ad.nclSum}\n*Equipe:* ${ad.numV}\n*Situacao:* ${statusText}\n*Observacao:*`;
 
                     // Cria o card do informativo
                     var cardElement = $('<pre>').addClass('info-card').text(outputString2);
@@ -644,4 +358,188 @@ $(document).ready(function() {
     // MODIFICAR O TÍTULO DA PÁGINA E NO NAVBAR
     $('head title').text('Painel de Ocorrências Real'); // Head
     $('#aTitle').text('Painel de Ocorrências Real'); // Navbar
+
+	// MANIPULAÇÃO DO CSS DA PÁGINA:
+    var styleElement = document.createElement('style'); // Cria um elemento style
+    styleElement.textContent = `
+		body {
+			margin: 0;
+			padding: 0;
+			overflow-x: hidden;
+			background-color: #2e2d61;
+			width: 100vw;
+		}
+		nav {
+			padding: 0;
+		}
+			.navbar-default {
+				background-color: #424175;
+				border-style: none;
+				height: 100px;
+			}
+				#NavRow {
+					height: 100%;
+					}
+					#NavExcelBtn {
+						padding: 0px;
+						height: 100%;
+						width: 20%;
+					}
+						.excel_button {
+							background-color: #4c4b7f;
+							height: 90px;
+							width: 200px;
+							margin: 5px;
+							font-size: 20pt;
+							color: white;
+							border-style: none;
+						}
+						.excel_button:hover {
+							background-color: #6b6ba8; /* Cor um pouco mais clara no hover */
+							box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
+										0 3px 3px -2px rgba(0, 0, 0, 0.2),
+										0 1px 8px 0 rgba(0, 0, 0, 0.12);
+						}
+						.excel_button:active {
+							box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+										0 1px 10px -2px rgba(0, 0, 0, 0.2),
+										0 2px 16px 0 rgba(0, 0, 0, 0.12);
+							background-color: #7c7cba; /* Cor ainda mais clara ao clicar */
+						}
+					#NavTitle {
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+						justify-content: center;
+						padding: 0px;
+						height: 100%;
+						width: 60%;
+					}
+						#aTitle {
+							display: table-cell;
+							vertical-align: bottom;
+							text-align: center;
+							width: 100%;
+							height: 50%;
+							padding: 0px;
+							padding-top: 10px;
+						}
+						.text-title, .text-title:link, .text-title:visited, .text-title:hover, .text-title:active {
+							font-weight: normal;
+							text-transform: uppercase;
+							color: #fff;
+							text-align: center;
+						}
+						#NavAlerts{
+							text-align: center;
+							width: 100%;
+							height: 50%;
+						}
+							#dvAtualizacao, #dvStatus {
+								font-size: 15pt;
+								padding: 10px;
+								margin: auto;
+								width: 50%;
+								height: 40px;
+							}
+					#NavFilter {
+						padding: 0px;
+						height: 100%;
+						width: 20%;
+					}
+						div.dataTables_filter {
+							width: 100%;
+							height: 100%;
+						}
+							input#Filter {
+								padding: 20px;
+								background-color: #4c4b7f;
+								font-weight: normal;
+								height: 90px;
+								width: 200px;
+								margin: 5px;
+								font-size: 20pt;
+								color: white;
+								border-style: none;
+							}
+		#output-area-1 {
+			padding: 12px 15px 1px 15px;
+			color: white;
+			text-align: center;
+			font-size: 1.4vw;
+			background-color: lime;
+		}
+		#output-area-2 {
+			padding: 12px 15px 1px 15px;
+			color: white;
+			text-align: center;
+			font-size: 1.4vw;
+			background-color: lime;
+		}
+		.dataTables_wrapper {
+			background-color: white;
+		}
+			#tabela-de-dados-clientes {
+				DISPLAY: BLOCK;
+				width: 100vw !important; /* Força a largura da tabela para 100% */
+				min-width: 0; /* Permite que a tabela diminua até 0, se necessário */
+				table-layout: fixed; /* Ajuda a manter a largura das colunas */
+			}
+				#tabela-titulo-tabela {
+					background-color: #424175 !important;
+				}
+				#tabela-de-dados-clientes tbody {
+					font-size: 1.1vw;
+				}
+				.form-control {
+					background-color: #4c4b7f;
+					border-color: #2e2d61;
+					border-radius: 0;
+				}
+		#output-area-3 {
+			margin-top: -9px;
+			padding: 10px;
+			border: 1px solid #ccc;
+			background-color: #f9f9f9;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			width: 100%;
+		}
+			#output-area-3 pre.info-card {
+				width: calc(20% - 8px) !important;
+				box-sizing: border-box;
+				padding: 10px;
+				border: 1px solid #ddd;
+				background-color: #fff;
+				margin: 0;
+				white-space: pre-wrap;
+				word-wrap: break-word;
+				position: relative; /* Necessário para posicionar o botão de cópia */
+				padding-bottom: 30px; /* Espaço para o botão */
+				font-family: courier new;
+			}
+				#output-area-3 .copy-button { /* Renomeado o ID */
+					position: absolute;
+					bottom: 5px;
+					right: 5px;
+					padding: 2px 5px;
+					font-size: 0.8em;
+					cursor: pointer;
+					background-color: #007bff;
+					color: white;
+					border: none;
+					border-radius: 3px;
+					z-index: 10; /* Garante que o botão fique acima do texto */
+				}
+				#output-area-3 .copy-button:hover { /* Renomeado o ID */
+					background-color: #0056b3;
+				}
+        .col-md-6.text-center {
+            display: none !important;
+        }
+	`;
+    document.head.appendChild(styleElement); // Adiciona o elemento style ao head
+
+
 });
