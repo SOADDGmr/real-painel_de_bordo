@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Painel de Bordo ++
 // @namespace    marco.guedes.e259671
-// @version      1.1.0
+// @version      1.1.1
 // @description  Implementa funções ao painel de Bordo Cemig
 // @author       Marco Guedes
 // @match        *https://geo.cemig.com.br/painel_de_bordo/Geo/Clientes*
@@ -14,6 +14,7 @@ setInterval(function() { location.reload(); }, 120000); // 2 Minutos
 
 $(document).ready(function() {
 
+	// CONFIGURAÇÃO
 	var clientLimitUpper = 100; // Limite superior (para informativo e faixa vermelha)
 	var clientLimitLower = 50; // Limite inferior (para faixa laranja)
     var filterTerm = "real"; // Filtro
@@ -349,7 +350,7 @@ $(document).ready(function() {
             // Define a cor de fundo das Areas com base na flag
 			if (hasHighInterruptionServicesUpper){
 				outputArea1.css('background-color', 'red');
-				outputArea2.css('background-color', hasMediumInterruptionServices ? 'orange' : '#424175');
+				outputArea2.css('background-color', hasMediumInterruptionServices ? 'orange' : '#2e2d61');
 			} else {
 				if (hasMediumInterruptionServices){
 					outputArea1.css('background-color', '#2e2d61');
@@ -485,6 +486,7 @@ $(document).ready(function() {
 			text-align: center;
 			font-size: 1.4vw;
 			background-color: lime;
+   			margin-top: 10px;
 		}
 		#output-area-2 {
 			padding: 12px 15px 1px 15px;
@@ -545,6 +547,9 @@ $(document).ready(function() {
 			gap: 10px;
 			width: 100%;
 		}
+  			pre {
+	 			font-size: 12px;
+			}
 			#output-area-3 pre.info-card {
 				width: calc(20% - 8px) !important;
 				box-sizing: border-box;
